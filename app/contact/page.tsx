@@ -2,11 +2,13 @@
 
 import { motion } from 'framer-motion'
 import { FaGithub, FaLinkedin, FaEnvelope, FaMapMarkerAlt, FaPaperPlane } from 'react-icons/fa'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useLanguage } from '@/lib/LanguageContext'
+import emailjs from '@emailjs/browser'
 
 export default function Contact() {
   const { t } = useLanguage()
+  const form = useRef<HTMLFormElement>(null)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,24 +16,39 @@ export default function Contact() {
     message: ''
   })
 
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Here you would normally send the form data to your backend
-    // For now, we'll just simulate a successful submission
-    setStatus('success')
-    setTimeout(() => {
-      setStatus('idle')
-      setFormData({ name: '', email: '', subject: '', message: '' })
-    }, 3000)
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
+    setStatus('sending')
+    
+    try {
+      // Vos clés EmailJS configurées
+      const result = await emailjs.sendForm(
+        'service_ftwu0ct',
+        'template_kihtmsc',
+        form.current!,
+        '14g98qHM1HuugkMt2'
+      )
+      
+      console.log('Email sent:', result.text)
+      setStatus('success')
+      
+      // Réinitialiser le formulaire après 3 secondes
+      setTimeout(() => {
+        setStatus('idle')
+        setFormData({ name: '', email: '', subject: '', message: '' })
+      }, 3000)
+    } catch (error: any) {
+      console.error('Email error:', error)
+      setStatus('error')
+      setErrorMessage(error.text || 'Failed to send message')
+      
+      setTimeout(() => {
+        setStatus('idle')
+      }, 5000)
+    }
   }
 
   const contactInfo = [
@@ -59,9 +76,8 @@ export default function Contact() {
     {
       icon: <FaMapMarkerAlt />,
       title: 'Location',
-      value: 'São José dos Campos, SP, Brazil',
-      link: null,
-      gradient: 'from-purple-500 to-accent-purple'
+      value: t('footer.location'),
+      gradient: 'from-blue-500 to-accent-blue'
     },
   ]
 
@@ -93,7 +109,7 @@ export default function Contact() {
           >
             <div className="gradient-border-content">
               <h2 className="text-3xl font-display mb-6">{t('contact.sendMessage')}</h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form ref={form} onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-semibold text-gray-300 mb-2">
                     {t('contact.name')}
@@ -101,11 +117,11 @@ export default function Contact() {
                   <input
                     type="text"
                     id="name"
-                    name="name"
+                    name="user_name"
                     value={formData.name}
-                    onChange={handleChange}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
                     required
-                    className="w-full px-4 py-3 bg-dark-card border border-accent-blue/20 rounded-lg text-white focus:outline-none focus:border-accent-blue transition-colors"
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20 transition-colors"
                     placeholder="John Doe"
                   />
                 </div>
@@ -117,11 +133,11 @@ export default function Contact() {
                   <input
                     type="email"
                     id="email"
-                    name="email"
+                    name="user_email"
                     value={formData.email}
-                    onChange={handleChange}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
                     required
-                    className="w-full px-4 py-3 bg-dark-card border border-accent-blue/20 rounded-lg text-white focus:outline-none focus:border-accent-blue transition-colors"
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20 transition-colors"
                     placeholder="john@example.com"
                   />
                 </div>
@@ -135,9 +151,9 @@ export default function Contact() {
                     id="subject"
                     name="subject"
                     value={formData.subject}
-                    onChange={handleChange}
+                    onChange={(e) => setFormData({...formData, subject: e.target.value})}
                     required
-                    className="w-full px-4 py-3 bg-dark-card border border-accent-blue/20 rounded-lg text-white focus:outline-none focus:border-accent-blue transition-colors"
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20 transition-colors"
                     placeholder="Project Inquiry"
                   />
                 </div>
@@ -150,10 +166,10 @@ export default function Contact() {
                     id="message"
                     name="message"
                     value={formData.message}
-                    onChange={handleChange}
+                    onChange={(e) => setFormData({...formData, message: e.target.value})}
                     required
                     rows={6}
-                    className="w-full px-4 py-3 bg-dark-card border border-accent-blue/20 rounded-lg text-white focus:outline-none focus:border-accent-blue transition-colors resize-none"
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20 transition-colors resize-none"
                     placeholder={t('contact.message') + '...'}
                   />
                 </div>
@@ -168,11 +184,22 @@ export default function Contact() {
                   </motion.div>
                 )}
 
+                {status === 'error' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500"
+                  >
+                    Erreur: {errorMessage}. Veuillez réessayer ou m'envoyer un email directement.
+                  </motion.div>
+                )}
+
                 <button
                   type="submit"
-                  className="w-full px-8 py-4 bg-gradient-to-r from-accent-blue to-accent-purple rounded-lg text-white font-semibold hover:shadow-xl hover:shadow-accent-blue/50 transition-all duration-300 flex items-center justify-center gap-2"
+                  disabled={status === 'sending'}
+                  className="w-full px-8 py-4 bg-gradient-to-r from-accent-blue to-accent-purple rounded-lg text-white font-semibold hover:shadow-xl hover:shadow-accent-blue/50 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {t('contact.send')}
+                  {status === 'sending' ? 'Envoi en cours...' : t('contact.send')}
                   <FaPaperPlane />
                 </button>
               </form>
@@ -206,7 +233,7 @@ export default function Contact() {
                           href={info.link}
                           target={info.link.startsWith('http') ? '_blank' : '_self'}
                           rel={info.link.startsWith('http') ? 'noopener noreferrer' : undefined}
-                          className="flex items-center gap-4 p-4 bg-dark-card rounded-lg border border-accent-blue/20 hover:border-accent-blue/50 transition-all hover:translate-x-2 group"
+                          className="flex items-center gap-4 p-4 bg-gray-800 rounded-lg border border-accent-blue/30 hover:border-accent-blue transition-all hover:translate-x-2 group shadow-md"
                         >
                           <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${info.gradient} flex items-center justify-center text-xl text-white group-hover:scale-110 transition-transform`}>
                             {info.icon}
@@ -217,7 +244,7 @@ export default function Contact() {
                           </div>
                         </a>
                       ) : (
-                        <div className="flex items-center gap-4 p-4 bg-dark-card rounded-lg border border-accent-blue/20">
+                        <div className="flex items-center gap-4 p-4 bg-gray-800 rounded-lg border border-accent-blue/30 shadow-md">
                           <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${info.gradient} flex items-center justify-center text-xl text-white`}>
                             {info.icon}
                           </div>
@@ -247,10 +274,7 @@ export default function Contact() {
                     <div className="w-3 h-3 bg-accent-green rounded-full animate-pulse" />
                     <span>{t('contact.availableText')}</span>
                   </div>
-                  <p>
-                    I'm open to full-time positions, freelance projects, and consulting opportunities
-                    in Full Stack AI Development, Computer Vision, and ML Engineering.
-                  </p>
+                  <p>{t('contact.availableDesc')}</p>
                 </div>
               </div>
             </motion.div>
@@ -259,63 +283,57 @@ export default function Contact() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+              className="gradient-border"
+            >
+              <div className="gradient-border-content">
+                <h3 className="text-2xl font-display mb-4">{t('contact.responseTime')}</h3>
+                <p className="text-gray-400">
+                  {t('contact.responseDesc')}
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Social Connect */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.6 }}
               className="gradient-border"
             >
               <div className="gradient-border-content">
-                <h3 className="text-2xl font-display mb-4">Response Time</h3>
-                <p className="text-gray-400">
-                  I typically respond to emails and messages within <span className="text-accent-blue font-semibold">24 hours</span>.
-                  For urgent matters, please mention "URGENT" in the subject line.
+                <h3 className="text-2xl font-display mb-4">{t('contact.preferPlatform')}</h3>
+                <p className="text-gray-400 mb-4">
+                  {t('contact.connectSocial')}
                 </p>
+                <div className="flex gap-4">
+                  <a
+                    href="https://github.com/Donald237"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-3 bg-dark-card rounded-lg border border-accent-blue/20 hover:border-accent-blue/50 transition-all hover:scale-110 text-2xl text-gray-400 hover:text-accent-blue"
+                  >
+                    <FaGithub />
+                  </a>
+                  <a
+                    href="https://www.linkedin.com/in/donald-mbouhom-729321251/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-3 bg-dark-card rounded-lg border border-accent-blue/20 hover:border-accent-blue/50 transition-all hover:scale-110 text-2xl text-gray-400 hover:text-accent-blue"
+                  >
+                    <FaLinkedin />
+                  </a>
+                  <a
+                    href="mailto:dmbouhom@gmail.com"
+                    className="p-3 bg-dark-card rounded-lg border border-accent-blue/20 hover:border-accent-blue/50 transition-all hover:scale-110 text-2xl text-gray-400 hover:text-accent-blue"
+                  >
+                    <FaEnvelope />
+                  </a>
+                </div>
               </div>
             </motion.div>
           </motion.div>
         </div>
-
-        {/* Bottom CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mt-20 text-center"
-        >
-          <div className="gradient-border inline-block">
-            <div className="gradient-border-content">
-              <h3 className="text-2xl font-display mb-3">
-                Prefer a different platform?
-              </h3>
-              <p className="text-gray-400 mb-6">
-                Connect with me on social media
-              </p>
-              <div className="flex justify-center gap-4">
-                <a
-                  href="https://github.com/Donald237"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-4 bg-dark-card rounded-lg border border-accent-blue/20 hover:border-accent-blue/50 hover:scale-110 transition-all text-2xl text-accent-blue"
-                >
-                  <FaGithub />
-                </a>
-                <a
-                  href="https://www.linkedin.com/in/donald-mbouhom-729321251/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-4 bg-dark-card rounded-lg border border-accent-blue/20 hover:border-accent-blue/50 hover:scale-110 transition-all text-2xl text-accent-blue"
-                >
-                  <FaLinkedin />
-                </a>
-                <a
-                  href="mailto:dmbouhom@gmail.com"
-                  className="p-4 bg-dark-card rounded-lg border border-accent-blue/20 hover:border-accent-blue/50 hover:scale-110 transition-all text-2xl text-accent-blue"
-                >
-                  <FaEnvelope />
-                </a>
-              </div>
-            </div>
-          </div>
-        </motion.div>
       </div>
     </div>
   )

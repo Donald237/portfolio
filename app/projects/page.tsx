@@ -46,10 +46,10 @@ export default function Projects() {
       ],
       tech: ['Langchain', 'LLM', 'RAG', 'Chainlit', 'Python', 'Elasticsearch', 'Ollama', 'Vector DB'],
       results: [
-        'Accurate regulatory compliance answers',
-        'Fast document retrieval',
-        'Deployed for French companies',
-        'Reduced consultation time by 70%'
+        'Research: Accurate regulatory compliance answers',
+        'Research: Fast document retrieval',
+        'Research: Deployed for French companies',
+        'Research: Reduced consultation time by 70%'
       ],
       gradient: 'from-accent-purple to-pink-500',
       year: '2024',

@@ -95,7 +95,8 @@ export default function Navigation() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden mt-4 pb-4"
+            className="md:hidden mt-4 pb-4 bg-white border-t border-gray-200 rounded-b-lg shadow-lg px-4"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.98)' }}
           >
             {navLinks.map((link) => (
               <Link
@@ -111,7 +112,7 @@ export default function Navigation() {
               href="/contact"
               className="block mt-4 px-6 py-3 bg-gradient-to-r from-accent-blue to-accent-purple rounded-full text-white font-semibold text-center"
             >
-              Let's Talk
+              {t('nav.letsTalk')}
             </a>
           </motion.div>
         )}
