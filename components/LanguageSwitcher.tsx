@@ -9,7 +9,7 @@ export default function LanguageSwitcher() {
   const { language, setLanguage } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
 
-  const languages = [
+  const languages: { code: 'en' | 'fr' | 'pt'; name: string; flag: string }[] = [
     { code: 'en', name: 'English', flag: '🇬🇧' },
     { code: 'fr', name: 'Français', flag: '🇫🇷' },
     { code: 'pt', name: 'Português', flag: '🇧🇷' },
